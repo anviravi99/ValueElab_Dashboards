@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Value ELab · Intelligence Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:       #07090f;
+  --bg1:      #0b0f1a;
+  --bg2:      #0f1520;
+  --bg3:      #141c2e;
+  --line:     rgba(255,255,255,0.07);
+  --line2:    rgba(255,255,255,0.04);
+
+  --blue:     #3b82f6;
+  --blue-dim: rgba(59,130,246,0.12);
+  --blue-glow:rgba(59,130,246,0.25);
+  --teal:     #14b8a6;
+  --teal-dim: rgba(20,184,166,0.12);
+  --amber:    #f59e0b;
+  --amber-dim:rgba(245,158,11,0.12);
+  --red:      #f43f5e;
+  --red-dim:  rgba(244,63,94,0.1);
+  --green:    #22c55e;
+  --green-dim:rgba(34,197,94,0.1);
+  --violet:   #8b5cf6;
+  --violet-dim:rgba(139,92,246,0.12);
+
+  --t1: #f1f5ff;
+  --t2: #8898bb;
+  --t3: #4a5878;
+  --t4: #2a334d;
+
+  --r: 10px;
+  --font-display: 'Bricolage Grotesque', sans-serif;
+  --font-body:    'DM Sans', sans-serif;
+  --font-mono:    'DM Mono', monospace;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html, body { width:100%; height:100%; overflow:hidden; }
+body {
+  background: var(--bg);
+  color: var(--t1);
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width:4px; height:4px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--line); border-radius:99px; }
+
+/* ── TOPBAR ── */
+.topbar {
+  position: fixed; top:0; left:0; right:0; height:52px; z-index:100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 32px;
+  background: rgba(7,9,15,0.92);
+  backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--line);
+}
+.brand {
+  font-family: var(--font-display);
+  font-weight: 700; font-size: 15px; letter-spacing: -0.4px;
+  color: var(--t1);
+  display: flex; align-items: center; gap: 10px;
+}
+.brand-dot {
+  width: 7px; height: 7px; border-radius:50%;
+  background: var(--blue);
+  box-shadow: 0 0 10px var(--blue);
+}
+.brand-sep { color: var(--t4); font-weight:300; }
+
+.nav {
+  display: flex; gap: 2px;
+  background: var(--bg1);
+  border: 1px solid var(--line);
+  border-radius: 10px; padding: 3px;
+}
+.nav-item {
+  padding: 5px 18px; border-radius: 7px; cursor: pointer;
+  font-size: 12.5px; font-weight: 500; color: var(--t3);
+  transition: all .2s; font-family: var(--font-body);
+  letter-spacing: 0.1px;
+}
+.nav-item:hover { color: var(--t2); background: var(--bg3); }
+.nav-item.active {
+  color: var(--t1); background: var(--bg3);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+}
+
+.topbar-r { display: flex; align-items: center; gap: 16px; }
+.live-pill {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: 99px;
+  background: var(--green-dim);
+  border: 1px solid rgba(34,197,94,0.2);
+  font-size: 11px; font-weight: 600; color: var(--green);
+  letter-spacing: 0.3px;
+}
+.live-pip { width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.3)} }
+
+.avatar {
+  width:30px;height:30px;border-radius:8px;
+  background: linear-gradient(135deg,var(--blue) 0%, var(--violet) 100%);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:#fff;letter-spacing:.5px;
+}
+
+/* ── MAIN SCROLL ── */
+.main { position:fixed;top:52px;left:0;right:0;bottom:0;overflow-y:auto; }
+.dash { display:none; padding:28px 32px 48px; animation: fadeUp .3s ease; }
+.dash.active { display:block; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+/* ── PAGE HEADER ── */
+.ph { display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px; }
+.ph-left {}
+.ph-eyebrow {
+  font-size:10.5px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--t3); margin-bottom:6px;
+}
+.ph-title {
+  font-family:var(--font-display);font-weight:700;font-size:24px;
+  letter-spacing:-0.5px;color:var(--t1);line-height:1.1;
+}
+.ph-sub { font-size:12.5px;color:var(--t3);margin-top:5px; }
+.ph-actions { display:flex;gap:8px;align-items:center;margin-top:6px; }
+
+/* ── BADGE CHIPS ── */
+.chip {
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 9px;border-radius:5px;
+  font-size:11px;font-weight:600;letter-spacing:0.2px;
+}
+.chip-blue   { background:var(--blue-dim);color:var(--blue);border:1px solid rgba(59,130,246,.2); }
+.chip-teal   { background:var(--teal-dim);color:var(--teal);border:1px solid rgba(20,184,166,.2); }
+.chip-amber  { background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,158,11,.2); }
+.chip-red    { background:var(--red-dim);color:var(--red);border:1px solid rgba(244,63,94,.2); }
+.chip-green  { background:var(--green-dim);color:var(--green);border:1px solid rgba(34,197,94,.2); }
+.chip-violet { background:var(--violet-dim);color:var(--violet);border:1px solid rgba(139,92,246,.2); }
+
+/* ── SECTION LABEL ── */
+.sl {
+  font-size:10.5px;font-weight:600;letter-spacing:1.8px;text-transform:uppercase;
+  color:var(--t3);margin-bottom:12px;margin-top:24px;
+  display:flex;align-items:center;gap:8px;
+}
+.sl::after { content:'';flex:1;height:1px;background:var(--line2); }
+
+/* ── GRID ── */
+.g { display:grid;gap:14px; }
+.g-4  { grid-template-columns:repeat(4,1fr); }
+.g-5  { grid-template-columns:repeat(5,1fr); }
+.g-3  { grid-template-columns:repeat(3,1fr); }
+.g-2  { grid-template-columns:repeat(2,1fr); }
+.g-73 { grid-template-columns:5fr 3fr; }
+.g-63 { grid-template-columns:3fr 2fr; }
+
+/* ── CARD ── */
+.card {
+  background:var(--bg1);
+  border:1px solid var(--line);
+  border-radius:var(--r);
+  padding:20px;
+  transition:border-color .2s;
+}
+.card:hover { border-color:rgba(255,255,255,0.12); }
+.card.flush { padding:0;overflow:hidden; }
+
+/* CARD with accent top border */
+.card-blue  { border-top:2px solid var(--blue); }
+.card-teal  { border-top:2px solid var(--teal); }
+.card-amber { border-top:2px solid var(--amber); }
+.card-red   { border-top:2px solid var(--red); }
+.card-violet{ border-top:2px solid var(--violet); }
+
+/* ── STAT CARD ── */
+.sc-label {
+  font-size:11px;font-weight:600;letter-spacing:0.8px;
+  text-transform:uppercase;color:var(--t3);margin-bottom:10px;
+}
+.sc-value {
+  font-family:var(--font-display);font-size:30px;font-weight:700;
+  line-height:1;letter-spacing:-1px;color:var(--t1);
+}
+.sc-value.blue   { color:var(--blue); }
+.sc-value.teal   { color:var(--teal); }
+.sc-value.amber  { color:var(--amber); }
+.sc-value.violet { color:var(--violet); }
+.sc-meta { font-size:12px;color:var(--t3);margin-top:7px; }
+.sc-icon {
+  width:34px;height:34px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:14px;font-size:15px;
+}
+.sc-icon.blue   { background:var(--blue-dim);color:var(--blue); }
+.sc-icon.teal   { background:var(--teal-dim);color:var(--teal); }
+.sc-icon.amber  { background:var(--amber-dim);color:var(--amber); }
+.sc-icon.violet { background:var(--violet-dim);color:var(--violet); }
+.sc-icon.red    { background:var(--red-dim);color:var(--red); }
+
+/* ── PROGRESS BAR ── */
+.pb { height:4px;background:var(--bg3);border-radius:99px;overflow:hidden;margin-top:10px; }
+.pb-fill { height:100%;border-radius:99px;transition:width 1.2s cubic-bezier(.4,0,.2,1); }
+.pb-fill.blue   { background:var(--blue); }
+.pb-fill.teal   { background:var(--teal); }
+.pb-fill.amber  { background:var(--amber); }
+.pb-fill.violet { background:var(--violet); }
+.pb-fill.red    { background:var(--red); }
+.pb-fill.green  { background:var(--green); }
+
+/* Thick prog bar */
+.pb-thick { height:8px; }
+
+/* ── LEVEL TRACK ── */
+.ltrack { display:flex;gap:6px;margin-top:16px; }
+.ln { flex:1;text-align:center; }
+.ln-badge {
+  height:34px;border-radius:7px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-weight:700;font-size:12px;
+  border:1px solid;
+}
+.ln-badge.done   { background:var(--bg3);border-color:var(--line);color:var(--t2); }
+.ln-badge.active {
+  background:var(--blue);border-color:var(--blue);
+  color:#fff;box-shadow:0 0 18px rgba(59,130,246,0.4);
+}
+.ln-badge.locked { background:transparent;border-color:var(--line2);color:var(--t4); }
+.ln-tag { font-size:10px;color:var(--t4);margin-top:5px;letter-spacing:.3px; }
+.ln-tag.done  { color:var(--teal); }
+.ln-tag.active{ color:var(--blue); }
+
+/* ── METRICS LIST ── */
+.mrow {
+  display:flex;justify-content:space-between;align-items:center;
+  padding:9px 0;border-bottom:1px solid var(--line2);
+}
+.mrow:last-child { border-bottom:none; }
+.mrow-label { font-size:12.5px;color:var(--t2); }
+.mrow-val {
+  font-family:var(--font-mono);font-size:12.5px;font-weight:500;color:var(--t1);
+}
+
+/* ── TABLE ── */
+table { width:100%;border-collapse:collapse; }
+th {
+  font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--t4);padding:10px 16px;text-align:left;
+  border-bottom:1px solid var(--line);background:var(--bg1);
+}
+td {
+  padding:11px 16px;font-size:12.5px;color:var(--t2);
+  border-bottom:1px solid var(--line2);
+}
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:rgba(255,255,255,0.015); }
+.tval { font-family:var(--font-mono);font-size:12px;color:var(--t1);font-weight:500; }
+.tname { color:var(--t1);font-weight:500; }
+.trank { font-family:var(--font-mono);font-size:11px;color:var(--t3); }
+.hl-row td { background:rgba(59,130,246,0.04) !important; }
+
+/* ── SKILL BAR ── */
+.sbar { margin-bottom:13px; }
+.sbar-top { display:flex;justify-content:space-between;margin-bottom:6px; }
+.sbar-name { font-size:12px;font-weight:500;color:var(--t2); }
+.sbar-val { font-family:var(--font-mono);font-size:11px;color:var(--t3); }
+
+/* ── ALERT ── */
+.alert {
+  display:flex;align-items:flex-start;gap:10px;
+  padding:11px 14px;border-radius:8px;margin-bottom:8px;
+  border:1px solid;
+}
+.alert.red    { background:var(--red-dim);border-color:rgba(244,63,94,.15); }
+.alert.amber  { background:var(--amber-dim);border-color:rgba(245,158,11,.15); }
+.alert-icon { font-size:14px;margin-top:1px;flex-shrink:0; }
+.alert-body {}
+.alert-title { font-size:12.5px;font-weight:600;color:var(--t1);margin-bottom:1px; }
+.alert-sub   { font-size:11.5px;color:var(--t3); }
+
+/* ── FLOW STEPPER ── */
+.flow {
+  display:flex;align-items:center;gap:0;
+  overflow-x:auto;padding:4px 0 4px;
+}
+.fnode {
+  flex-shrink:0;
+  display:flex;flex-direction:column;align-items:center;text-align:center;
+  gap:8px;padding:16px 14px;
+  background:var(--bg2);border:1px solid var(--line);border-radius:10px;
+  min-width:96px;
+}
+.fnode-icon {
+  width:36px;height:36px;border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;
+}
+.fnode-label { font-family:var(--font-display);font-size:12px;font-weight:700;color:var(--t1); }
+.fnode-sub   { font-size:10.5px;color:var(--t3); }
+
+.fnode.fn0 .fnode-icon { background:var(--blue-dim);color:var(--blue); }
+.fnode.fn1 .fnode-icon { background:var(--violet-dim);color:var(--violet); }
+.fnode.fn2 .fnode-icon { background:var(--teal-dim);color:var(--teal); }
+.fnode.fn3 .fnode-icon { background:var(--amber-dim);color:var(--amber); }
+.fnode.fn4 .fnode-icon { background:var(--red-dim);color:var(--red); }
+.fnode.fn5 .fnode-icon { background:var(--blue-dim);color:var(--blue); }
+.fnode.fn6 .fnode-icon { background:var(--teal-dim);color:var(--teal); }
+.fnode.fn7 .fnode-icon { background:var(--amber-dim);color:var(--amber); }
+
+.farrow {
+  flex-shrink:0;width:28px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--t4);font-size:13px;
+}
+
+/* ── DIVIDER ── */
+.divider { height:1px;background:var(--line2);margin:16px 0; }
+
+/* ── SCORE RING INLINE ── */
+.ring-wrap { position:relative;display:inline-flex; }
+.ring-label {
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  text-align:center;
+}
+.ring-val { font-family:var(--font-display);font-weight:700;font-size:22px;color:var(--t1);line-height:1; }
+.ring-sub { font-size:9.5px;color:var(--t3);margin-top:3px;letter-spacing:.5px;text-transform:uppercase; }
+
+/* ── DEPT BADGE ── */
+.drank {
+  display:flex;align-items:center;gap:10px;
+  padding:9px 0;border-bottom:1px solid var(--line2);
+}
+.drank:last-child { border-bottom:none; }
+.drank-num { font-family:var(--font-mono);font-size:11px;color:var(--t4);width:16px;flex-shrink:0; }
+.drank-name { font-size:12.5px;color:var(--t2);flex:1; }
+.drank-bar { flex:2; }
+.drank-pct { font-family:var(--font-mono);font-size:12px;color:var(--t1);font-weight:500;width:34px;text-align:right;flex-shrink:0; }
+
+@media(max-width:1200px){
+  .g-4{grid-template-columns:repeat(2,1fr);}
+  .g-5{grid-template-columns:repeat(3,1fr);}
+  .g-73,.g-63{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-dot"></div>
+    Value ELab
+    <span class="brand-sep">/</span>
+    <span style="color:var(--t3);font-weight:400;">GoalMappy</span>
+  </div>
+  <div class="nav">
+    <div class="nav-item active" onclick="sw('employee',this)">Employee</div>
+    <div class="nav-item" onclick="sw('manager',this)">Manager</div>
+    <div class="nav-item" onclick="sw('cxo',this)">CXO</div>
+    <div class="nav-item" onclick="sw('company',this)">Company</div>
+  </div>
+  <div class="topbar-r">
+    <div class="live-pill"><div class="live-pip"></div>Live</div>
+    <span style="font-size:12px;color:var(--t3)">Q2 · 2025</span>
+    <div class="avatar">AR</div>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- ══════════════════════════════════════════════════
+     EMPLOYEE DASHBOARD
+══════════════════════════════════════════════════ -->
+<div class="dash active" id="d-employee">
+  <div class="ph">
+    <div>
+      <div class="ph-eyebrow">Individual Performance</div>
+      <div class="ph-title">My Dashboard</div>
+      <div class="ph-sub">Anvi Ravi · Operations Alpha · Level 3 — Proficient</div>
+    </div>
+    <div class="ph-actions">
+      <span class="chip chip-teal">↑ Top 8% This Week</span>
+      <span class="chip chip-blue">18-day streak</span>
+    </div>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="sl">Summary</div>
+  <div class="g g-4">
+    <div class="card card-blue">
+      <div class="sc-icon blue">⚡</div>
+      <div class="sc-label">Total XP Earned</div>
+      <div class="sc-value blue">14,820</div>
+      <div class="sc-meta">+340 today · +2,100 this week</div>
+    </div>
+    <div class="card card-violet">
+      <div class="sc-icon violet">◈</div>
+      <div class="sc-label">Current Level</div>
+      <div class="sc-value violet">L3</div>
+      <div class="sc-meta">1,180 XP remaining to L4</div>
+      <div class="pb pb-thick" style="margin-top:12px"><div class="pb-fill violet" style="width:72%"></div></div>
+    </div>
+    <div class="card card-amber">
+      <div class="sc-icon amber">◎</div>
+      <div class="sc-label">Active Streak</div>
+      <div class="sc-value amber">18</div>
+      <div class="sc-meta">days · Personal best: 24 days</div>
+    </div>
+    <div class="card">
+      <div class="sc-icon teal">◆</div>
+      <div class="sc-label">Badges Earned</div>
+      <div class="sc-value teal">12</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:10px">
+        <span class="chip chip-amber">Pioneer</span>
+        <span class="chip chip-teal">Deep Thinker</span>
+        <span class="chip chip-violet">Achiever</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MISSION + RADAR -->
+  <div class="sl">Mission Progress & Skills</div>
+  <div class="g g-73">
+    <div>
+      <div class="card" style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+          <div>
+            <div style="font-family:var(--font-display);font-weight:600;font-size:15px;color:var(--t1);letter-spacing:-.3px">Business Intelligence Sprint — Q2</div>
+            <div style="font-size:12px;color:var(--t3);margin-top:3px">12 challenges · 67% complete · On track</div>
+          </div>
+          <span class="chip chip-blue">67%</span>
+        </div>
+        <div class="pb pb-thick"><div class="pb-fill blue" style="width:67%"></div></div>
+        <div class="ltrack">
+          <div class="ln"><div class="ln-badge done">L1</div><div class="ln-tag done">Complete</div></div>
+          <div class="ln"><div class="ln-badge done">L2</div><div class="ln-tag done">Complete</div></div>
+          <div class="ln"><div class="ln-badge active">L3</div><div class="ln-tag active">In Progress</div></div>
+          <div class="ln"><div class="ln-badge locked">L4</div><div class="ln-tag">Locked</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-family:var(--font-display);font-weight:600;font-size:14px;color:var(--t1);margin-bottom:14px;letter-spacing:-.2px">Challenge Activity Metrics</div>
+        <div class="g g-2" style="gap:0">
+          <div>
+            <div class="mrow"><span class="mrow-label">Avg time per task</span><span class="mrow-val">24 min</span></div>
+            <div class="mrow"><span class="mrow-label">Hint usage rate</span><span class="mrow-val">2.4 ×</span></div>
+          </div>
+          <div>
+            <div class="mrow"><span class="mrow-label">Re-entry count</span><span class="mrow-val">8 sessions</span></div>
+            <div class="mrow"><span class="mrow-label">Reflection depth</span><span class="mrow-val">8.2 / 10</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="display:flex;flex-direction:column">
+      <div style="font-family:var(--font-display);font-weight:600;font-size:14px;color:var(--t1);letter-spacing:-.2px">PACCA Skill Profile</div>
+      <div style="font-size:11.5px;color:var(--t3);margin-top:3px;margin-bottom:12px">Current vs team average · L1–L4 scale</div>
+      <div style="height:200px;flex-shrink:0"><canvas id="e-radar"></canvas></div>
+      <div class="divider"></div>
+      <div style="flex:1">
+        <div class="sbar"><div class="sbar-top"><span class="sbar-name">Problem Solving</span><span class="sbar-val">L3 · 75%</span></div><div class="pb"><div class="pb-fill blue" style="width:75%"></div></div></div>
+        <div class="sbar"><div class="sbar-top"><span class="sbar-name">Analytical Thinking</span><span class="sbar-val">L3 · 80%</span></div><div class="pb"><div class="pb-fill teal" style="width:80%"></div></div></div>
+        <div class="sbar"><div class="sbar-top"><span class="sbar-name">Critical Thinking</span><span class="sbar-val">L2 · 55%</span></div><div class="pb"><div class="pb-fill violet" style="width:55%"></div></div></div>
+        <div class="sbar"><div class="sbar-top"><span class="sbar-name">Creativity</span><span class="sbar-val">L3 · 70%</span></div><div class="pb"><div class="pb-fill amber" style="width:70%"></div></div></div>
+        <div class="sbar" style="margin-bottom:0"><div class="sbar-top"><span class="sbar-name">AI Skills</span><span class="sbar-val">L4 · 92%</span></div><div class="pb"><div class="pb-fill green" style="width:92%"></div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEADERBOARD -->
+  <div class="sl">Team Leaderboard</div>
+  <div class="card flush">
+    <table>
+      <thead>
+        <tr>
+          <th>Rank</th><th>Member</th><th>Level</th>
+          <th>Total XP</th><th>Streak</th><th>Badges</th><th>Standing</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="trank">01</td><td class="tname">Rahul S.</td><td><span class="chip chip-teal">L4</span></td><td class="tval">18,440</td><td class="tval">31d</td><td class="tval">17</td><td><span class="chip chip-teal">Top 1%</span></td></tr>
+        <tr><td class="trank">02</td><td class="tname">Priya M.</td><td><span class="chip chip-teal">L4</span></td><td class="tval">17,210</td><td class="tval">28d</td><td class="tval">15</td><td><span class="chip chip-teal">Top 3%</span></td></tr>
+        <tr class="hl-row"><td class="trank" style="color:var(--blue)">03 ←</td><td class="tname" style="color:var(--blue)">Anvi R. (You)</td><td><span class="chip chip-blue">L3</span></td><td class="tval" style="color:var(--blue)">14,820</td><td class="tval">18d</td><td class="tval">12</td><td><span class="chip chip-blue">Top 8%</span></td></tr>
+        <tr><td class="trank">04</td><td class="tname">Karan T.</td><td><span class="chip chip-violet">L3</span></td><td class="tval">13,990</td><td class="tval">14d</td><td class="tval">10</td><td><span class="chip chip-violet">Top 12%</span></td></tr>
+        <tr><td class="trank">05</td><td class="tname">Sneha P.</td><td><span class="chip chip-violet">L3</span></td><td class="tval">12,600</td><td class="tval">9d</td><td class="tval">9</td><td><span class="chip chip-amber">Top 18%</span></td></tr>
+        <tr><td class="trank">06</td><td class="tname">Dev K.</td><td><span class="chip chip-amber">L2</span></td><td class="tval">9,840</td><td class="tval">4d</td><td class="tval">6</td><td><span class="chip chip-amber">Top 28%</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     MANAGER DASHBOARD
+══════════════════════════════════════════════════ -->
+<div class="dash" id="d-manager">
+  <div class="ph">
+    <div>
+      <div class="ph-eyebrow">Team Intelligence</div>
+      <div class="ph-title">Manager Dashboard</div>
+      <div class="ph-sub">Operations Alpha · 12 Members · Q2 2025</div>
+    </div>
+    <div class="ph-actions">
+      <span class="chip chip-red">2 At-Risk Members</span>
+      <span class="chip chip-teal">Team Health 78%</span>
+    </div>
+  </div>
+
+  <div class="sl">Team Overview</div>
+  <div class="g g-4">
+    <div class="card card-teal">
+      <div class="sc-icon teal">◎</div>
+      <div class="sc-label">Mission Completion</div>
+      <div class="sc-value teal">73%</div>
+      <div class="pb pb-thick" style="margin-top:10px"><div class="pb-fill teal" style="width:73%"></div></div>
+      <div class="sc-meta" style="margin-top:8px">13 of 18 missions complete</div>
+    </div>
+    <div class="card card-blue">
+      <div class="sc-icon blue">⚡</div>
+      <div class="sc-label">Avg Team XP</div>
+      <div class="sc-value blue">11,240</div>
+      <div class="sc-meta">+12% vs last quarter</div>
+    </div>
+    <div class="card card-amber">
+      <div class="sc-icon amber">◆</div>
+      <div class="sc-label">Dept Ranking</div>
+      <div class="sc-value amber">#2</div>
+      <div class="sc-meta">of 8 teams · Up from #4</div>
+    </div>
+    <div class="card">
+      <div class="sc-icon red">◈</div>
+      <div class="sc-label">Active Members</div>
+      <div class="sc-value">10 <span style="font-size:16px;color:var(--t4);font-weight:400">/12</span></div>
+      <div style="margin-top:8px;display:flex;gap:6px">
+        <span class="chip chip-teal">10 Active</span>
+        <span class="chip chip-red">2 Inactive</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sl">Mission Tracking & Skills</div>
+  <div class="g g-73">
+    <div>
+      <div class="card" style="margin-bottom:14px">
+        <div style="font-family:var(--font-display);font-weight:600;font-size:14px;color:var(--t1);margin-bottom:14px;letter-spacing:-.2px">Missions Assigned vs Completed — by Level</div>
+        <div style="height:200px"><canvas id="m-bar"></canvas></div>
+        <div class="divider"></div>
+        <div class="g g-3">
+          <div style="text-align:center;padding:6px 0">
+            <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--blue)">18</div>
+            <div style="font-size:11px;color:var(--t3);margin-top:3px;letter-spacing:.5px;text-transform:uppercase">Assigned</div>
+          </div>
+          <div style="text-align:center;padding:6px 0">
+            <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--teal)">13</div>
+            <div style="font-size:11px;color:var(--t3);margin-top:3px;letter-spacing:.5px;text-transform:uppercase">Completed</div>
+          </div>
+          <div style="text-align:center;padding:6px 0">
+            <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--amber)">5</div>
+            <div style="font-size:11px;color:var(--t3);margin-top:3px;letter-spacing:.5px;text-transform:uppercase">In Progress</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div style="font-family:var(--font-display);font-weight:600;font-size:14px;color:var(--t1);margin-bottom:14px;letter-spacing:-.2px">Engagement & Behaviour Metrics</div>
+        <div class="g g-2" style="gap:0">
+          <div>
+            <div class="mrow"><span class="mrow-label">Avg time per task</span><span class="mrow-val">31 min</span></div>
+            <div class="mrow"><span class="mrow-label">Avg hint usage</span><span class="mrow-val">3.1 ×</span></div>
+          </div>
+          <div>
+            <div class="mrow"><span class="mrow-label">Re-entry rate</span><span class="mrow-val">68%</span></div>
+            <div class="mrow"><span class="mrow-label">Reflection rate</span><span class="mrow-val">81%</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card" style="margin-bottom:14px">
+        <div style="font-family:var(--font-display);font-weight:600;font-size:14px;color:var(--t1);letter-spacing:-.2px">Team PACCA Radar</div>
+        <div style="font-size:11.5px;color:var(--t3);margin-top:3px;margin-bottom:10px">Team avg vs target</div>
+        <div style="height:210px"><canvas id="m-radar"></canvas></div>
+      </div>
+      <div class="card">
+        <div style="font-family:var(--font-display);font-weight:600;font-size:14px;color:var(--t1);margin-bottom:12px;letter-spacing:-.2px">Risk & Alerts</div>
+        <div class="alert red">
+          <div class="alert-icon" style="color:var(--red)">◉</div>
+          <div class="alert-body">
+            <div class="alert-title">Vivek M. — No activity for 7 days</div>
+            <div class="alert-sub">Last seen: L2 Challenge 3 · Action recommended</div>
+          </div>
+        </div>
+        <div class="alert red">
+          <div class="alert-icon" style="color:var(--red)">◉</div>
+          <div class="alert-body">
+            <div class="alert-title">Tanya R. — L1 drop-off, 0 reflections</div>
+            <div class="alert-sub">Engagement score critical · Check-in needed</div>
+          </div>
+        </div>
+        <div class="alert amber">
+          <div class="alert-icon" style="color:var(--amber)">◈</div>
+          <div class="alert-body">
+            <div class="alert-title">Skill gap — Critical Thinking at L1.8 avg</div>
+            <div class="alert-sub">7 of 12 members below L2 threshold</div>
+          </div>
+        </div>
+        <div class="alert amber">
+          <div class="alert-icon" style="color:var(--amber)">◈</div>
+          <div class="alert-body">
+            <div class="alert-title">3 members below 50% mission pace</div>
+            <div class="alert-sub">Q2 completion at risk if pace not corrected</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     CXO DASHBOARD
+══════════════════════════════════════════════════ -->
+<div class="dash" id="d-cxo">
+  <div class="ph">
+    <div>
+      <div class="ph-eyebrow">Executive Intelligence</div>
+      <div class="ph-title">CXO Overview</div>
+      <div class="ph-sub">Value ELab · All Departments · Q2 2025</div>
+    </div>
+    <div class="ph-actions">
+      <span class="chip chip-teal">Strategic Health: Strong</span>
+      <span class="chip chip-blue">+6pp ahead of Q2 target</span>
+    </div>
+  </div>
+
+  <div class="sl">Strategic KPIs</div>
+  <div class="g g-4">
+    <div class="card card-teal">
+      <div class="sc-icon teal">◎</div>
+      <div class="sc-label">Goal Completion</div>
+      <div class="sc-value teal">61%</div>
+      <div class="pb pb-thick" style="margin-top:10px"><div class="pb-fill teal" style="width:61%"></div></div>
+      <div class="sc-meta" style="margin-top:8px">Target 55% · 6pp ahead</div>
+    </div>
+    <div class="card card-blue">
+      <div class="sc-icon blue">◈</div>
+      <div class="sc-label">Missions Completed</div>
+      <div class="sc-value blue">248</div>
+      <div class="sc-meta">of 340 total · 92 ongoing</div>
+    </div>
+    <div class="card card-amber">
+      <div class="sc-icon amber">◆</div>
+      <div class="sc-label">Value Created (Est.)</div>
+      <div class="sc-value amber">₹4.2Cr</div>
+      <div class="sc-meta">+22% vs Q1 2025</div>
+    </div>
+    <div class="card">
+      <div class="sc-icon blue">⬡</div>
+      <div class="sc-label">Participation Rate</div>
+      <div class="sc-value">84%</div>
+      <div class="pb pb-thick" style="margin-top:10px"><div class="pb-fill blue" style="width:84%"></div></div>
+      <div class="sc-meta" style="margin-top:8px">620 of 740 active employees</div>
+    </div>
+  </div>
+
+  <div class="sl">Organisational Performance</div>
+  <div class="g g-73">
+    <div>
+      <div class="card" style="margin-bottom:14px">
+        <div style="font-family:var(--font-display);font-weight:600;font-size:14px;color:var(--t1);margin-bottom:14px;letter-spacing:-.2px">Department Mission Completion</div>
+        <div style="height:220px"><canvas id="c-bar"></canvas></div>
+      </div>
+      <div class="g g-2">
+        <div class="card">
+          <div style="font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--teal);margin-bottom:12px">Top Performers</div>
+          <div class="drank"><span class="drank-num">01</span><span class="drank-name">Ops Alpha</span><div class="drank-bar"><div class="pb"><div class="pb-fill teal" style="width:92%"></div></div></div><span class="drank-pct">92%</span></div>
+          <div class="drank"><span class="drank-num">02</span><span class="drank-name">Product Beta</span><div class="drank-bar"><div class="pb"><div class="pb-fill teal" style="width:88%"></div></div></div><span class="drank-pct">88%</span></div>
+          <div class="drank"><span class="drank-num">03</span><span class="drank-name">Strategy</span><div class="drank-bar"><div class="pb"><div class="pb-fill blue" style="width:85%"></div></div></div><span class="drank-pct">85%</span></div>
+        </div>
+        <div class="card">
+          <div style="font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--red);margin-bottom:12px">Needs Attention</div>
+          <div class="drank"><span class="drank-num">06</span><span class="drank-name">Finance Eps</span><div class="drank-bar"><div class="pb"><div class="pb-fill red" style="width:41%"></div></div></div><span class="drank-pct">41%</span></div>
+          <div class="drank"><span class="drank-num">05</span><span class="drank-name">HR Delta</span><div class="drank-bar"><div class="pb"><div class="pb-fill red" style="width:48%"></div></div></div><span class="drank-pct">48%</span></div>
+          <div class="drank"><span class="drank-num">04</span><span class="drank-name">Legal Eps</span><div class="drank-bar"><div class="pb"><div class="pb-fill amber" style="width:52%"></div></div></div><span class="drank-pct">52%</span></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:14px">
+        <div style="font-family:var(--font-display);font-weight:600;font-size:14px;color:var(--t1);letter-spacing:-.2px">Company PACCA Capability</div>
+        <div style="font-size:11.5px;color:var(--t3);margin-top:3px;margin-bottom:10px">Organisation-wide skill levels</div>
+        <div style="height:210px"><canvas id="c-radar"></canvas></div>
+      </div>
+      <div class="card">
+        <div style="font-family:var(--font-display);font-weight:600;font-size:14px;color:var(--t1);margin-bottom:12px;letter-spacing:-.2px">Engagement Signals</div>
+        <div class="mrow"><span class="mrow-label">Participation rate</span><span class="mrow-val">84%</span></div>
+        <div class="mrow"><span class="mrow-label">Drop-off (Q2)</span><span class="mrow-val" style="color:var(--red)">16%</span></div>
+        <div class="mrow"><span class="mrow-label">Re-entry trend</span><span class="mrow-val" style="color:var(--green)">↑ +9%</span></div>
+        <div class="mrow"><span class="mrow-label">Avg hint usage</span><span class="mrow-val">2.8 ×</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VALUE FLOW -->
+  <div class="sl">Skill → Value Flow</div>
+  <div class="card">
+    <div style="font-size:12px;color:var(--t3);margin-bottom:16px">End-to-end conversion: from strategic goals to measurable business value</div>
+    <div class="flow">
+      <div class="fnode fn0"><div class="fnode-icon">◎</div><div class="fnode-label">Goals</div><div class="fnode-sub">18 active</div></div>
+      <div class="farrow">→</div>
+      <div class="fnode fn1"><div class="fnode-icon">◈</div><div class="fnode-label">Missions</div><div class="fnode-sub">340 total</div></div>
+      <div class="farrow">→</div>
+      <div class="fnode fn2"><div class="fnode-icon">◆</div><div class="fnode-label">Challenges</div><div class="fnode-sub">1,240 done</div></div>
+      <div class="farrow">→</div>
+      <div class="fnode fn3"><div class="fnode-icon">▣</div><div class="fnode-label">Tasks</div><div class="fnode-sub">5,680 logged</div></div>
+      <div class="farrow">→</div>
+      <div class="fnode fn4"><div class="fnode-icon">◉</div><div class="fnode-label">Feedback</div><div class="fnode-sub">4,210 given</div></div>
+      <div class="farrow">→</div>
+      <div class="fnode fn5"><div class="fnode-icon">⚡</div><div class="fnode-label">XP</div><div class="fnode-sub">2.41M total</div></div>
+      <div class="farrow">→</div>
+      <div class="fnode fn6"><div class="fnode-icon">⬡</div><div class="fnode-label">Skills</div><div class="fnode-sub">PACCA +18%</div></div>
+      <div class="farrow">→</div>
+      <div class="fnode fn7"><div class="fnode-icon">◆</div><div class="fnode-label">Value</div><div class="fnode-sub">₹4.2Cr</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     COMPANY GLOBAL DASHBOARD
+══════════════════════════════════════════════════ -->
+<div class="dash" id="d-company">
+  <div class="ph">
+    <div>
+      <div class="ph-eyebrow">System Intelligence · Global View</div>
+      <div class="ph-title">Company Dashboard</div>
+      <div class="ph-sub">Value ELab Platform · All Departments · 740 employees</div>
+    </div>
+    <div class="ph-actions">
+      <span class="chip chip-green">Platform Health: Healthy</span>
+      <span class="chip chip-blue">620 Active Now</span>
+    </div>
+  </div>
+
+  <div class="sl">Global Metrics</div>
+  <div class="g g-5">
+    <div class="card card-blue">
+      <div class="sc-icon blue">⚡</div>
+      <div class="sc-label">Total XP Generated</div>
+      <div class="sc-value blue" style="font-size:26px">2.41M</div>
+      <div class="sc-meta">+82K this week</div>
+    </div>
+    <div class="card card-teal">
+      <div class="sc-icon teal">◎</div>
+      <div class="sc-label">Missions Completed</div>
+      <div class="sc-value teal" style="font-size:26px">248</div>
+      <div class="sc-meta">of 340 · 73% rate</div>
+    </div>
+    <div class="card">
+      <div class="sc-icon blue">⬡</div>
+      <div class="sc-label">Active Users</div>
+      <div class="sc-value" style="font-size:26px">620 <span style="font-size:14px;color:var(--t4);font-weight:400">/ 740</span></div>
+      <div class="pb" style="margin-top:10px"><div class="pb-fill blue" style="width:84%"></div></div>
+    </div>
+    <div class="card card-amber">
+      <div class="sc-icon amber">◆</div>
+      <div class="sc-label">Badges Awarded</div>
+      <div class="sc-value amber" style="font-size:26px">3,840</div>
+      <div class="sc-meta">+210 this week</div>
+    </div>
+    <div class="card card-violet">
+      <div class="sc-icon violet">◈</div>
+      <div class="sc-label">Points Redeemed</div>
+      <div class="sc-value violet" style="font-size:26px">184K</div>
+      <div class="sc-meta">30% of 620K earned</div>
+    </div>
+  </div>
+
+  <!-- FLOW -->
+  <div class="sl">End-to-End System Flow</div>
+  <div class="card">
+    <div class="flow">
+      <div class="fnode fn0"><div class="fnode-icon">◎</div><div class="fnode-label">Goal</div><div class="fnode-sub">18 strategic</div></div>
+      <div class="farrow">→</div>
+      <div class="fnode fn1"><div class="fnode-icon">◈</div><div class="fnode-label">Mission</div><div class="fnode-sub">73% complete</div></div>
+      <div class="farrow">→</div>
+      <div class="fnode fn2"><div class="fnode-icon">◆</div><div class="fnode-label">Challenge</div><div class="fnode-sub">1,240 cleared</div></div>
+      <div class="farrow">→</div>
+      <div class="fnode fn3"><div class="fnode-icon">▣</div><div class="fnode-label">Task</div><div class="fnode-sub">5,680 logged</div></div>
+      <div class="farrow">→</div>
+      <div class="fnode fn4"><div class="fnode-icon">◉</div><div class="fnode-label">Feedback</div><div class="fnode-sub">4.2K given</div></div>
+      <div class="farrow">→</div>
+      <div class="fnode fn5"><div class="fnode-icon">⚡</div><div class="fnode-label">XP</div><div class="fnode-sub">2.41M total</div></div>
+      <div class="farrow">→</div>
+      <div class="fnode fn6"><div class="fnode-icon">⬡</div><div class="fnode-label">Skill</div><div class="fnode-sub">PACCA ↑18%</div></div>
+      <div class="farrow">→</div>
+      <div class="fnode fn7"><div class="fnode-icon">◆</div><div class="fnode-label">Value</div><div class="fnode-sub">₹4.2Cr</div></div>
+    </div>
+  </div>
+
+  <!-- THREE COLUMNS -->
+  <div class="sl">Level Distribution, Capability & Engagement</div>
+  <div class="g g-3">
+    <div class="card">
+      <div style="font-family:var(--font-display);font-weight:600;font-size:14px;color:var(--t1);letter-spacing:-.2px">L1–L4 Distribution</div>
+      <div style="font-size:11.5px;color:var(--t3);margin-top:3px;margin-bottom:14px">Percentage of employees at each level</div>
+      <div style="height:190px"><canvas id="co-dist"></canvas></div>
+      <div class="divider"></div>
+      <div>
+        <div class="mrow">
+          <span style="display:flex;align-items:center;gap:8px"><span style="width:9px;height:9px;border-radius:2px;background:var(--blue);display:inline-block;flex-shrink:0"></span><span class="mrow-label">L1 Foundation</span></span>
+          <span class="mrow-val">28%</span>
+        </div>
+        <div class="mrow">
+          <span style="display:flex;align-items:center;gap:8px"><span style="width:9px;height:9px;border-radius:2px;background:var(--violet);display:inline-block;flex-shrink:0"></span><span class="mrow-label">L2 Developing</span></span>
+          <span class="mrow-val">37%</span>
+        </div>
+        <div class="mrow">
+          <span style="display:flex;align-items:center;gap:8px"><span style="width:9px;height:9px;border-radius:2px;background:var(--teal);display:inline-block;flex-shrink:0"></span><span class="mrow-label">L3 Proficient</span></span>
+          <span class="mrow-val">26%</span>
+        </div>
+        <div class="mrow">
+          <span style="display:flex;align-items:center;gap:8px"><span style="width:9px;height:9px;border-radius:2px;background:var(--amber);display:inline-block;flex-shrink:0"></span><span class="mrow-label">L4 Expert</span></span>
+          <span class="mrow-val">9%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="font-family:var(--font-display);font-weight:600;font-size:14px;color:var(--t1);letter-spacing:-.2px">Company PACCA Radar</div>
+      <div style="font-size:11.5px;color:var(--t3);margin-top:3px;margin-bottom:10px">Q2 vs Q1 progression</div>
+      <div style="height:200px"><canvas id="co-radar"></canvas></div>
+      <div class="divider"></div>
+      <div class="mrow"><span class="mrow-label">Strongest skill</span><span style="font-family:var(--font-mono);font-size:12px;color:var(--teal)">AI Skills · L3.2</span></div>
+      <div class="mrow"><span class="mrow-label">Weakest skill</span><span style="font-family:var(--font-mono);font-size:12px;color:var(--red)">Critical Thinking · L1.9</span></div>
+      <div class="mrow"><span class="mrow-label">QoQ growth</span><span style="font-family:var(--font-mono);font-size:12px;color:var(--green)">+18% avg uplift</span></div>
+    </div>
+
+    <div>
+      <div class="card" style="margin-bottom:14px">
+        <div style="font-family:var(--font-display);font-weight:600;font-size:14px;color:var(--t1);margin-bottom:12px;letter-spacing:-.2px">Engagement Health</div>
+        <div class="mrow"><span class="mrow-label">Avg time per task</span><span class="mrow-val">29 min</span></div>
+        <div class="mrow"><span class="mrow-label">Hint usage trend</span><span class="mrow-val" style="color:var(--green)">↓ 2.6× (−8%)</span></div>
+        <div class="mrow"><span class="mrow-label">Re-entry rate</span><span class="mrow-val" style="color:var(--green)">71% ↑</span></div>
+        <div class="mrow"><span class="mrow-label">Reflection depth avg</span><span class="mrow-val">7.4 / 10</span></div>
+        <div class="mrow"><span class="mrow-label">Q2 drop-off rate</span><span class="mrow-val" style="color:var(--red)">16%</span></div>
+      </div>
+      <div class="card">
+        <div style="font-family:var(--font-display);font-weight:600;font-size:14px;color:var(--t1);margin-bottom:12px;letter-spacing:-.2px">Leaderboard & Rewards</div>
+        <div class="drank"><span class="drank-num">01</span><span class="drank-name">Ops Alpha</span><div class="drank-bar"><div class="pb"><div class="pb-fill teal" style="width:100%"></div></div></div><span class="drank-pct" style="color:var(--teal)">18.4K</span></div>
+        <div class="drank"><span class="drank-num">02</span><span class="drank-name">Product Beta</span><div class="drank-bar"><div class="pb"><div class="pb-fill blue" style="width:93%"></div></div></div><span class="drank-pct">17.2K</span></div>
+        <div class="drank"><span class="drank-num">03</span><span class="drank-name">Strategy</span><div class="drank-bar"><div class="pb"><div class="pb-fill blue" style="width:91%"></div></div></div><span class="drank-pct">16.9K</span></div>
+        <div class="divider"></div>
+        <div style="font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--t3);margin-bottom:10px">Points Wallet</div>
+        <div class="mrow"><span class="mrow-label">Total issued</span><span class="mrow-val">620K</span></div>
+        <div class="mrow"><span class="mrow-label">Redeemed</span><span class="mrow-val" style="color:var(--blue)">184K (30%)</span></div>
+        <div class="mrow"><span class="mrow-label">Pending</span><span class="mrow-val">436K</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<script>
+// ── TAB SWITCH ──
+function sw(id, el) {
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.dash').forEach(d=>d.classList.remove('active'));
+  document.getElementById('d-'+id).classList.add('active');
+}
+
+// ── CHART DEFAULTS ──
+Chart.defaults.color = '#4a5878';
+Chart.defaults.font.family = "'DM Sans', sans-serif";
+Chart.defaults.font.size = 11;
+
+const COLORS = {
+  blue:'#3b82f6', teal:'#14b8a6', amber:'#f59e0b',
+  red:'#f43f5e', violet:'#8b5cf6', green:'#22c55e'
+};
+
+function dimColor(hex, a=0.15){
+  const r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+const radarOpts = {
+  type:'radar',
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    scales:{r:{
+      backgroundColor:'transparent',
+      angleLines:{color:'rgba(255,255,255,0.05)'},
+      grid:{color:'rgba(255,255,255,0.05)'},
+      ticks:{
+        backdropColor:'transparent', color:'#2a334d',
+        font:{size:9}, stepSize:1
+      },
+      pointLabels:{
+        color:'#4a5878', font:{size:10, family:"'Bricolage Grotesque', sans-serif", weight:'600'}
+      },
+      min:0, max:4,
+    }},
+    plugins:{
+      legend:{
+        labels:{color:'#4a5878', boxWidth:9, font:{size:10}, padding:14}
+      }
+    },
+  }
+};
+
+// Employee radar
+new Chart(document.getElementById('e-radar'), {
+  ...radarOpts,
+  data:{
+    labels:['Problem\nSolving','Analytical\nThinking','Critical\nThinking','Creativity','AI Skills'],
+    datasets:[
+      {
+        label:'You',
+        data:[3,3.2,2.2,2.8,3.7],
+        backgroundColor:dimColor(COLORS.blue,.14),
+        borderColor:COLORS.blue, borderWidth:1.5,
+        pointBackgroundColor:COLORS.blue, pointRadius:3.5, pointBorderWidth:0,
+      },
+      {
+        label:'Team Avg',
+        data:[2.5,2.8,2.0,2.4,2.9],
+        backgroundColor:'transparent',
+        borderColor:'rgba(255,255,255,0.1)', borderWidth:1.2,
+        pointBackgroundColor:'rgba(255,255,255,0.2)', pointRadius:2.5,
+        borderDash:[5,3],
+      }
+    ]
+  }
+});
+
+// Manager bar
+new Chart(document.getElementById('m-bar'), {
+  type:'bar',
+  data:{
+    labels:['L1','L2','L3','L4'],
+    datasets:[
+      {
+        label:'Assigned',
+        data:[18,14,9,4],
+        backgroundColor:dimColor(COLORS.blue,.2),
+        borderColor:COLORS.blue, borderWidth:1, borderRadius:4,
+      },
+      {
+        label:'Completed',
+        data:[18,12,6,1],
+        backgroundColor:dimColor(COLORS.teal,.2),
+        borderColor:COLORS.teal, borderWidth:1, borderRadius:4,
+      }
+    ]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    plugins:{
+      legend:{labels:{color:'#4a5878', boxWidth:9, font:{size:10}, padding:12}}
+    },
+    scales:{
+      x:{grid:{color:'rgba(255,255,255,0.04)'}, ticks:{font:{size:11}}},
+      y:{grid:{color:'rgba(255,255,255,0.04)'}, ticks:{font:{size:10}}, beginAtZero:true},
+    },
+    barPercentage:0.65,
+  }
+});
+
+// Manager radar
+new Chart(document.getElementById('m-radar'), {
+  ...radarOpts,
+  data:{
+    labels:['Problem\nSolving','Analytical','Critical\nThinking','Creativity','AI Skills'],
+    datasets:[
+      {
+        label:'Team Avg',
+        data:[2.5,2.8,1.8,2.4,2.9],
+        backgroundColor:dimColor(COLORS.violet,.12),
+        borderColor:COLORS.violet, borderWidth:1.5,
+        pointBackgroundColor:COLORS.violet, pointRadius:3.5, pointBorderWidth:0,
+      },
+      {
+        label:'Target L3',
+        data:[3,3,3,3,3],
+        backgroundColor:'transparent',
+        borderColor:'rgba(255,255,255,0.08)', borderWidth:1,
+        pointRadius:2, borderDash:[5,3],
+      }
+    ]
+  }
+});
+
+// CXO bar (horizontal)
+new Chart(document.getElementById('c-bar'), {
+  type:'bar',
+  data:{
+    labels:['Ops Alpha','Product Beta','Strategy','Tech Gamma','HR Delta','Finance Eps'],
+    datasets:[{
+      data:[92,88,85,76,48,41],
+      backgroundColor: ctx => {
+        const v = ctx.parsed.x;
+        return v>=80? dimColor(COLORS.teal,.22) : v>=60? dimColor(COLORS.blue,.22) : dimColor(COLORS.red,.22);
+      },
+      borderColor: ctx => {
+        const v = ctx.parsed.x;
+        return v>=80? COLORS.teal : v>=60? COLORS.blue : COLORS.red;
+      },
+      borderWidth:1, borderRadius:4,
+    }]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false, indexAxis:'y',
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{grid:{color:'rgba(255,255,255,0.04)'}, ticks:{font:{size:10}}, max:100},
+      y:{grid:{color:'rgba(255,255,255,0.03)'}, ticks:{font:{size:11}}},
+    }
+  }
+});
+
+// CXO radar
+new Chart(document.getElementById('c-radar'), {
+  ...radarOpts,
+  data:{
+    labels:['Problem\nSolving','Analytical','Critical\nThinking','Creativity','AI Skills'],
+    datasets:[
+      {
+        label:'Company Q2',
+        data:[2.4,2.6,1.9,2.2,3.2],
+        backgroundColor:dimColor(COLORS.amber,.12),
+        borderColor:COLORS.amber, borderWidth:1.5,
+        pointBackgroundColor:COLORS.amber, pointRadius:3.5, pointBorderWidth:0,
+      }
+    ]
+  }
+});
+
+// Company donut
+new Chart(document.getElementById('co-dist'), {
+  type:'doughnut',
+  data:{
+    labels:['L1 Foundation','L2 Developing','L3 Proficient','L4 Expert'],
+    datasets:[{
+      data:[28,37,26,9],
+      backgroundColor:[
+        dimColor(COLORS.blue,.7), dimColor(COLORS.violet,.7),
+        dimColor(COLORS.teal,.7), dimColor(COLORS.amber,.7)
+      ],
+      borderColor:'#07090f', borderWidth:3, hoverOffset:5,
+    }]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false, cutout:'70%',
+    plugins:{
+      legend:{display:false},
+      tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed}%`}},
+    }
+  }
+});
+
+// Company radar
+new Chart(document.getElementById('co-radar'), {
+  ...radarOpts,
+  data:{
+    labels:['Problem\nSolving','Analytical','Critical\nThinking','Creativity','AI Skills'],
+    datasets:[
+      {
+        label:'Q2 2025',
+        data:[2.3,2.5,1.9,2.1,3.2],
+        backgroundColor:dimColor(COLORS.teal,.14),
+        borderColor:COLORS.teal, borderWidth:1.5,
+        pointBackgroundColor:COLORS.teal, pointRadius:3.5, pointBorderWidth:0,
+      },
+      {
+        label:'Q1 2025',
+        data:[2.0,2.2,1.7,1.9,2.8],
+        backgroundColor:'transparent',
+        borderColor:'rgba(255,255,255,0.1)', borderWidth:1,
+        pointBackgroundColor:'rgba(255,255,255,0.15)', pointRadius:2.5,
+        borderDash:[5,3],
+      }
+    ]
+  }
+});
+</script>
+</body>
+</html>
